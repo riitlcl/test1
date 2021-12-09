@@ -28,8 +28,10 @@ class FetchData extends StatelessWidget{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('cart', json.encode(numbersMap));
   }
-
-
+late int random=random;
+late String status;
+late int min;
+late int max;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,10 +51,7 @@ class FetchData extends StatelessWidget{
           )
         );
             }else {
-              return ListView.builder(itemCount:snapshot.data.lenght,
-                itemBuilder: (context,index)=>
-                    ListTile(parameter: Text(snapshot.data[index].parameter),)
-                ,);
+              print('Random number: ${snapshot.data[3]}');
             }
           },
              ),
