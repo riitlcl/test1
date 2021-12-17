@@ -1,68 +1,52 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import "package:test1/models/test_api.dart";
 
-late final String parameter;
-class FetchData extends StatelessWidget{
+class RandomNumberFetch extends StatefulWidget {
+  const RandomNumberFetch({Key? key}) : super(key: key);
 
-  final String apiUrl = "https://csrng.net/csrng/csrng.php?parameter1=1¶meter2=1000";
+  @override
+  _RandomNumberFetchState createState() => _RandomNumberFetchState();
+}
 
-  Future<List<dynamic>> fetchnumber() async {
+class _RandomNumberFetchState extends State<RandomNumberFetch> {
 
-    var result = await http.get(Uri.parse(apiUrl));
-    return json.decode(result.body)['results'];
+  Future<int> randomNumber = TestApi.getRandomNumber();
+  List<int> previousNumbres=[];
 
-  }
-
-  Map<String,dynamic> toMap() {
-    var map = new Map<String, dynamic>();
-    map["param"] = parameter;
-    return map;
-
-
-  }
- // Map<String,dynamic> numbersMap = parameter.toMap();
-
-  storedCart(numbersMap) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cart', json.encode(numbersMap));
-  }
-late int random=random;
-late String status;
-late int min;
-late int max;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Random Fetched Number'),
-      ),
-      body: Container(
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 32),
+    child: FutureBuilder(
+      future: randomNumber,
+      builder: (BuildContext context, AsyncSnapshot<int> snapshot){
+    String result ="Loading";
+      if(snapshot.connectionState != ConnectionState.waiting && snapshot.hasData){
+      result=snapshot.data.toString();
+      }
+      return Column(
+      children: [
+        ElevatedButton(onPressed: snapshot.connectionState == ConnectionState.waiting
+     ? null
+    : () {
+          setState(() {
+            previousNumbres.add(snapshot.data!);
+            randomNumber=TestApi.getRandomNumber();
+          });
 
-        child: FutureBuilder<List<dynamic>>(
-          future: fetchnumber(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if(snapshot.hasData){
-             // print(snapshot.data[0]);
-        return Container(
-          child:Center(
-            child:CircularProgressIndicator()
-          )
-        );
-            }else {
-              print('Random number: ${snapshot.data[3]}');
-            }
-          },
-             ),
+    },
+    child: Text("Get random number")),
+    Text(result, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),)
+    ,
+    Text(previousNumbres.isNotEmpty ? "Previous numbers" : "", style: TextStyle(fontSize: 24),),
+    Column(children: previousNumbres.map<Widget>((int element)=>Text(element.toString())).toList(),)
+      ],
 
-      ),
-      body:Center(
-      child: ElevatedButton(
-        onPressed: (){FetchData();},
-    child:Text("GET DATA"),
-    ),)
-    );
+
+      );
+      }));
   }
-
 }
